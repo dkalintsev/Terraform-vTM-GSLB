@@ -1,0 +1,20 @@
+; $TTL used for all RRs without explicit TTL value
+
+$TTL    30
+
+$ORIGIN ${dns_subdomain}.${dns_domain}.
+
+@  1D  IN  SOA ns1.${dns_subdomain}.${dns_domain}. hostmaster.${dns_subdomain}.${dns_domain}. (
+                2017121501 ; serial
+                3H ; refresh
+                15 ; retry
+                1w ; expire
+                3h ; nxdomain ttl
+                )
+
+        IN  NS  ns1.${dns_subdomain}.${dns_domain}.
+        IN  NS  ns2.${dns_subdomain}.${dns_domain}.
+
+; server host definitions
+ns1     IN  A   ${vtm_tip1} ; Traffic IP1
+ns2     IN  A   ${vtm_tip2} ; Traffic IP2
