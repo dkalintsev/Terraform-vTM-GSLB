@@ -16,5 +16,5 @@ $ORIGIN ${dns_subdomain}.${dns_domain}.
         IN  NS  ns2.${dns_subdomain}.${dns_domain}.
 
 ; server host definitions
-ns1     IN  A   ${vtm_tip1} ; Traffic IP1
-ns2     IN  A   ${vtm_tip2} ; Traffic IP2
+ns1     IN  A   ${ns1_ip}
+ns2     IN  A   ${ns2_ip}

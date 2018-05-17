@@ -14,69 +14,65 @@ variable "vtm_rest_port" {
   default     = "9070"
 }
 
+variable "vtm_username" {
+  description = "Login to use to connect to vTM"
+  default     = "admin"
+}
+
 variable "vtm_password" {
   description = "Password of the 'admin' account on the vTM"
 }
 
 variable "existing_tip_group_name" {
-  # If this is specified, template will extract Traffic IPs from this TIP Group
-  # and use it to start the GSLB Virtual Server on. Value given to vtm_tip
-  # variable is ignored.
+  # Mandatory parameter.
   #
-  # If this is empty, you must provide at least two valid Elastic IPs that will
-  # be used to create a new TIP Group for GSLB Virtual Server.
+  # Template will extract Traffic IPs from this TIP Group and use it
+  # to start the GSLB Virtual Server on.
   #
   description = "Name of an existing TIP Group to use."
+}
+
+### Secondary vTM cluster ###
+#
+# This is optional. If specified, this will configure the secondary vTM
+#
+# The main variable is the "vtm_rest_ip_2" - if specified, this will trigger
+# creation of the config objects for the second vTM cluster.
+#
+# If any of the below is set to "", template will reuse value from the primary.
+#
+variable "vtm_rest_ip_2" {
+  description = "IP or FQDN of the vTM REST API endpoint, e.g. '192.168.0.1'"
+  default     = ""
+}
+
+variable "vtm_rest_port_2" {
+  description = "TCP port of the vTM REST API endpoint"
+  default     = "9070"
+}
+
+variable "vtm_username_2" {
+  description = "Login to use to connect to vTM"
+  default     = "admin"
+}
+
+variable "vtm_password_2" {
+  description = "Password of the 'admin' account on the vTM"
+  default     = ""
+}
+
+variable "existing_tip_group_name_2" {
+  # Mandatory parameter.
+  #
+  # Template will extract Traffic IPs from this TIP Group and use it
+  # to start the GSLB Virtual Server on.
+  #
+  description = "Name of an existing TIP Group on secondary vTM to use."
 
   default = ""
 }
 
-# If the existing_tip_group_name above is empty, template will use Elastic IPs
-# specified in this variable to create a new TIP Group.
-# At least two IPs must be provided.
-#
-# List, e.g.: ["1.1.1.1", "2.2.2.2"]
-#
-variable "vtm_tips" {
-  description = "List of vTM Traffic IP addresses; at *least two* are required."
-  default     = []
-}
-
-variable "loc1_ips" {
-  # List, e.g.: ["10.10.10.10", "20.20.20.20"]
-  #
-  description = "Public IP(s) of the Location 1"
-
-  default = []
-}
-
-variable "loc1_lat" {
-  # Float value, e.g., "44.08"
-  description = "Latitude of the Location 1"
-}
-
-variable "loc1_lon" {
-  # Float value, e.g., "-120.74"
-  description = "Longitude of the Location 1"
-}
-
-variable "loc2_ips" {
-  description = "Public IP(s) of the Location 2"
-  default     = []
-}
-
-variable "loc2_lat" {
-  description = "Latitude of the Location 2"
-}
-
-variable "loc2_lon" {
-  description = "Longitude of the Location 2"
-}
-
-variable "vtm_machines" {
-  description = "List of string names of vTMs in cluster"
-  default     = []
-}
+### End of Secondary vTM cluster variables ###
 
 variable "monitor_http_path" {
   description = "HTTP path for the GLB Location Monitor"
@@ -97,4 +93,15 @@ variable "dns_subdomain" {
 variable "global_host_name" {
   description = "Hostname for the global load balancing endpoint, without domain name"
   default     = "vpn"
+}
+
+variable "ns1_ip" {
+  # This would be an IP that belongs to the 'existing_tip_group_name'
+  description = "Public IP on your vTM to use for GSLB glue record 'ns1'."
+}
+
+variable "ns2_ip" {
+  # This would be another IP that belongs to the 'existing_tip_group_name', or
+  # an IP that belongs to 'existing_tip_group_name_2' if you use secondary vTM
+  description = "Public IP on your vTM to use for GSLB glue record 'ns2'."
 }
