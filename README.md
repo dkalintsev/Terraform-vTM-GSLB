@@ -115,7 +115,7 @@ All these values, except `vtm_rest_ip_2`, are optional; template will use the va
 These are the parameters for the Location 1.
 
 | Parameter | Description | Default
-| --- | --- |
+| --- | --- | ---
 | `loc1_ips` | A list of public IP addresses for the Location 1, for example, `["10.10.10.10", "20.20.20.20"]`. This is used to create Location Monitors. One monitor is created for each IP in this list. | `[]` (empty list)
 | `loc1_mon_port` | TCP port that Location IPs should be monitored on; used in Monitor's configuration. | `443`
 | `loc1_lat` | Latitude of the Location 1, e.g., `44.08`; used for the Location's, well, location. | N/A
@@ -126,7 +126,7 @@ These are the parameters for the Location 1.
 These are the parameters for the Location 2; they are identical to their counterparts from the Location 1 apart from their names that have `2` instead of `1`.
 
 | Parameter | Description | Default
-| --- | --- |
+| --- | --- | ---
 | `loc2_ips` | A list of public IP addresses for the Location 2, for example, `["10.10.10.10", "20.20.20.20"]` | `[]` (empty list)
 | `loc2_mon_port` | TCP port that Location IPs should be monitored on | `443`
 | `loc2_lat` | Latitude of the Location 2, e.g., `19.08` | N/A
