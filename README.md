@@ -134,7 +134,14 @@ These are the parameters for the Location 2; they are identical to their counter
 
 ## Example use
 
-1. Make a copy of the template for each deployment. Your directory should look something like this:
+Download and install [Terraform](https://www.terraform.io/intro/getting-started/install.html) and [Terraform provider for vTM v4.0.0](https://github.com/pulse-vadc/terraform-provider-vtm/releases/tag/VTMTF_181) - official binary is for Linux; unofficial builds for Mac and Windows are here:
+
+- MacOS: https://www.dropbox.com/s/ohw4pu5941dus44/terraform-provider-vtm_v4.0.0-darwin-amd64.zip
+- Windows: https://www.dropbox.com/s/3p0s9g87jcyz1j8/terraform-provider-vtm_v4.0.0-win64.zip
+
+Unzip the downloaded file and follow the [official instructions](https://www.terraform.io/docs/configuration/providers.html#third-party-plugins) on where to place the plugin on your system.
+
+1. Make a copy of the template for each deployment environment, e.g., "test", "lab", "PoC", etc.. Your directory should look something like this:
 
 ```
 .
