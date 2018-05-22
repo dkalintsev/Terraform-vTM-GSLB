@@ -26,8 +26,7 @@ variable "vtm_password" {
 variable "existing_tip_group_name" {
   # Mandatory parameter.
   #
-  # Template will extract Traffic IPs from this TIP Group and use it
-  # to start the GSLB Virtual Server on.
+  # Template will use it to start the GSLB Virtual Server on.
   #
   description = "Name of an existing TIP Group to use."
 }
@@ -64,8 +63,7 @@ variable "vtm_password_2" {
 variable "existing_tip_group_name_2" {
   # Mandatory parameter.
   #
-  # Template will extract Traffic IPs from this TIP Group and use it
-  # to start the GSLB Virtual Server on.
+  # Template will use it to start the GSLB Virtual Server on.
   #
   description = "Name of an existing TIP Group on secondary vTM to use."
 
@@ -75,7 +73,7 @@ variable "existing_tip_group_name_2" {
 ### End of Secondary vTM cluster variables ###
 
 variable "monitor_http_path" {
-  description = "HTTP path for the GLB Location Monitor"
+  description = "HTTP path for the GSLB Location Monitor"
 
   # Default for PCS
   default = "/dana-na/auth/url_default/welcome.cgi"

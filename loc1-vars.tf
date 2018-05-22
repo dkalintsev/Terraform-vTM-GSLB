@@ -6,6 +6,11 @@ variable "loc1_ips" {
   default = []
 }
 
+variable "loc1_mon_port" {
+  description = "IP port to use for monitoring of this location's IPs"
+  default     = "443"
+}
+
 variable "loc1_lat" {
   # Float value, e.g., "44.08"
   description = "Latitude of the Location 1"

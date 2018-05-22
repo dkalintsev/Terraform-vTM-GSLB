@@ -1,6 +1,6 @@
 env_id = "test"
 
-vtm_rest_ip = "54.252.150.44"
+vtm_rest_ip = "13.55.163.137"
 
 #vtm_rest_ip_2 = "192.168.0.60"
 
@@ -10,7 +10,7 @@ vtm_password = "Password123"
 
 existing_tip_group_name = "Web VIP"
 
-#existing_tip_group_name = "Test"
+existing_tip_group_name_2 = "Test"
 
 ns1_ip = "1.1.1.1"
 
@@ -28,4 +28,8 @@ loc2_lat = "19.08"
 
 loc2_lon = "72.89"
 
-dns_domain = "7-35.net"
+dns_domain = "example.com"
+
+dns_subdomain = "gslb"
+
+global_host_name = "vpn"

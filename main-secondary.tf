@@ -30,12 +30,8 @@ locals {
 }
 
 provider "vtm" {
-  alias = "secondary"
-
-  # base_url will be invalid if rest_ip_2 isn't specified; but that's ok
-  # since we won't be creating any resources on it then.
-  base_url = "https://${local.vtm_rest_ip_2}:${local.vtm_rest_port_2}/api"
-
+  alias           = "secondary"
+  base_url        = "https://${local.vtm_rest_ip_2}:${local.vtm_rest_port_2}/api"
   username        = "${local.vtm_username_2}"
   password        = "${local.vtm_password_2}"
   verify_ssl_cert = false
@@ -66,22 +62,27 @@ resource "vtm_glb_service" "glb_service_2" {
   name = "${var.env_id}-GLB-Service-1"
 
   # If adding more locations, update this:
-  chained_location_order = ["${vtm_location.location_1_2.name}", "${vtm_location.location_2_2.name}"]
+  chained_location_order = [
+    "${module.loc1.loc_name}",
+    "${module.loc2.loc_name}",
+  ]
 
   domains = ["${var.global_host_name}.${var.dns_subdomain}.${var.dns_domain}"]
   enabled = "true"
 
   # If adding more locations, add corresponding section below:
-
+  # Location 1
   location_settings {
-    location = "${vtm_location.location_1_2.name}"
+    location = "${module.loc1.loc_name}"
     ips      = "${var.loc1_ips}"
-    monitors = ["${vtm_monitor.monitor_loc_1_2.*.name}"]
+    monitors = ["${module.loc1.mon_loc_name}"]
   }
+
+  # Location 2
   location_settings {
-    location = "${vtm_location.location_2_2.name}"
+    location = "${module.loc2.loc_name}"
     ips      = "${var.loc2_ips}"
-    monitors = ["${vtm_monitor.monitor_loc_2_2.*.name}"]
+    monitors = ["${module.loc2.mon_loc_name}"]
   }
 }
 
