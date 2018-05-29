@@ -245,7 +245,7 @@ resource "vtm_glb_service" "glb_service" {
 
 Paste it underneath the similarly looking "Location 2" section, and replace all instances of `loc1` in your pasted copy with `loc3`.
 
-7. Replicate chanes made in steps (5) and (6) above in the file `main-secondary.tf`.
+7. Replicate changes made in steps (5) and (6) above in the file `main-secondary.tf`.
 
 8. Edit `terraform.tfvars` and add values for `loc3_ips`, `loc3_lat`, and `loc3_lon`.
 

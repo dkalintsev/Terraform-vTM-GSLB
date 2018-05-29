@@ -7,8 +7,13 @@ provider "vtm" {
   alias = "secondary"
 }
 
+locals {
+  # Locations don't allow underscores in their names.
+  env_id_no_uderscores = "${replace(var.env_id, "_", "-")}"
+}
+
 resource "vtm_location" "location" {
-  name       = "${var.env_id}-Location-${var.loc_num}"
+  name       = "${local.env_id_no_uderscores}-Location-${var.loc_num}"
   identifier = "${var.loc_num}"
   latitude   = "${var.loc_lat}"
   longitude  = "${var.loc_lon}"
