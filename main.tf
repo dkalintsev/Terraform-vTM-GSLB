@@ -14,9 +14,42 @@ data "template_file" "glb_zone" {
   vars {
     dns_domain    = "${var.dns_domain}"
     dns_subdomain = "${var.dns_subdomain}"
-    ns1_ip        = "${var.ns1_ip}"
-    ns2_ip        = "${var.ns2_ip}"
+    zone_serial   = "${var.zone_serial}"
   }
+}
+
+resource "null_resource" "ns" {
+  # This creates a number of strings we need for NS records, based on the
+  # list of traffic IPs collected in local.all_tips
+  count = "${length(local.all_tips)}"
+
+  triggers {
+    ns_host = "ns${format("%d", count.index + 1)}"
+    ns_fqdn = "ns${format("%d", count.index + 1)}.${var.dns_subdomain}.${var.dns_domain}"
+    ns_ip   = "${local.all_tips[count.index]}"
+  }
+}
+
+locals {
+  # Create NS records for the zone from all Traffic IPs we have
+
+  # Gather all Traffic IPs that were given to us
+  all_tips = "${flatten(list(var.traffic_ips, var.traffic_ips_2))}"
+
+  # Create a list of "  IN NS nsN.blah.com."
+  in_ns_list = "${formatlist("    IN NS %s.",
+    null_resource.ns.*.triggers.ns_fqdn)}"
+
+  # Pull the list into a string joined by new lines
+  in_ns_string = "${join("\n", local.in_ns_list)}"
+
+  # Create a list of "nsN  IN A x.x.x.x"
+  ns_in_a_list = "${formatlist("%s  IN A %s",
+    null_resource.ns.*.triggers.ns_host,
+    null_resource.ns.*.triggers.ns_ip)}"
+
+  # Pull the list into a string joined by new lines
+  ns_in_a_string = "${join("\n", local.ns_in_a_list)}"
 }
 
 locals {
@@ -31,16 +64,19 @@ locals {
   # Now, concatenate the zone template with the resulting list of A-records
   # Varible "zone" now has the complete zone file to be used by vTM DNS server
   #
-  zone = "${data.template_file.glb_zone.rendered}\n${local.dns_lines}"
+  zone = "${data.template_file.glb_zone.rendered}\n${local.in_ns_string}\n${local.ns_in_a_string}\n${local.dns_lines}"
 
   # DNS Records for the origin zone. Generated as output for convenience.
   # These are to be added to the zone of the dns_domain manually
   #
-  glue_record1 = "${format("ns1.${var.dns_subdomain}.${var.dns_domain}. IN A %s", var.ns1_ip)}"
+  glue_records = "${formatlist("%s.  IN A %s",
+    null_resource.ns.*.triggers.ns_fqdn,
+    null_resource.ns.*.triggers.ns_ip)}"
 
-  glue_record2 = "${format("ns2.${var.dns_subdomain}.${var.dns_domain}. IN A %s", var.ns2_ip)}"
-  ns_record1   = "${format("${var.dns_subdomain} IN NS ns1.${var.dns_subdomain}.${var.dns_domain}.")}"
-  ns_record2   = "${format("${var.dns_subdomain} IN NS ns2.${var.dns_subdomain}.${var.dns_domain}.")}"
+  ns_records = "${formatlist("${var.dns_subdomain}    IN NS %s.",
+    null_resource.ns.*.triggers.ns_fqdn)}"
+
+  cname_record = "${format("${var.global_host_name} IN CNAME ${var.global_host_name}.${var.dns_subdomain}.${var.dns_domain}.")}"
 }
 
 resource "vtm_dns_server_zone_file" "glb_zone_file" {
@@ -124,12 +160,28 @@ resource "vtm_glb_service" "glb_service" {
   }
 }
 
+# This returns a list populated with "name" values of all traffic managers
+# in the target cluster. We need this to create the Traffic IP Group.
+#
+data "vtm_traffic_manager_list" "cluster_machines" {
+  # No parameters needed
+}
+
+# Traffic IP Group for our Virtual Server.
+#
+resource "vtm_traffic_ip_group" "tip_group" {
+  name        = "${var.env_id}-GSLB-TIP-Group"
+  mode        = "${var.tip_type}"
+  ipaddresses = "${var.traffic_ips}"
+  machines    = ["${data.vtm_traffic_manager_list.cluster_machines.object_list}"]
+}
+
 resource "vtm_virtual_server" "glb_demo" {
   name                  = "${var.env_id}-GLB-VS-1"
   enabled               = "true"
   glb_services          = ["${vtm_glb_service.glb_service.name}"]
   listen_on_any         = "false"
-  listen_on_traffic_ips = ["${var.existing_tip_group_name}"]
+  listen_on_traffic_ips = ["${vtm_traffic_ip_group.tip_group.name}"]
   pool                  = "builtin_dns"
   port                  = "53"
   protocol              = "dns"
@@ -138,5 +190,9 @@ resource "vtm_virtual_server" "glb_demo" {
 
 output "origin_zone_records" {
   # To add to the ${var.dns_domain} zone manually
-  value = ["${local.ns_record1}", "${local.ns_record2}", "${local.glue_record1}", "${local.glue_record2}"]
+  value = [
+    "${local.ns_records}",
+    "${local.glue_records}",
+    "${local.cname_record}",
+  ]
 }

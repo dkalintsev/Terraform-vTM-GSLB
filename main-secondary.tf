@@ -23,10 +23,6 @@ locals {
   # Was alternative password specified for secondary?
   vtm_password_2 = "${var.vtm_password_2 != "" ?
     var.vtm_password_2 : var.vtm_password}"
-
-  # Was alternative TIP Group name specified for secondary?
-  existing_tip_group_name_2 = "${var.existing_tip_group_name_2 != "" ?
-    var.existing_tip_group_name_2 : var.existing_tip_group_name}"
 }
 
 provider "vtm" {
@@ -86,6 +82,26 @@ resource "vtm_glb_service" "glb_service_2" {
   }
 }
 
+# This returns a list populated with "name" values of all traffic managers
+# in the target cluster. We need this to create the Traffic IP Group.
+#
+data "vtm_traffic_manager_list" "cluster_machines_2" {
+  provider = "vtm.secondary"
+  count    = "${local.secondary_count}"
+}
+
+# Traffic IP Group for our Virtual Server.
+#
+resource "vtm_traffic_ip_group" "tip_group_2" {
+  provider = "vtm.secondary"
+  count    = "${local.secondary_count}"
+
+  name        = "${var.env_id}-GSLB-TIP-Group"
+  mode        = "${var.tip_type_2}"
+  ipaddresses = "${var.traffic_ips_2}"
+  machines    = ["${data.vtm_traffic_manager_list.cluster_machines_2.object_list}"]
+}
+
 resource "vtm_virtual_server" "glb_demo_2" {
   provider = "vtm.secondary"
   count    = "${local.secondary_count}"
@@ -95,7 +111,7 @@ resource "vtm_virtual_server" "glb_demo_2" {
   glb_services  = ["${vtm_glb_service.glb_service_2.name}"]
   listen_on_any = "false"
 
-  listen_on_traffic_ips = ["${local.existing_tip_group_name_2}"]
+  listen_on_traffic_ips = ["${vtm_traffic_ip_group.tip_group_2.name}"]
   pool                  = "builtin_dns"
   port                  = "53"
   protocol              = "dns"

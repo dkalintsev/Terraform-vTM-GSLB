@@ -23,12 +23,19 @@ variable "vtm_password" {
   description = "Password of the 'admin' account on the vTM"
 }
 
-variable "existing_tip_group_name" {
+variable "traffic_ips" {
   # Mandatory parameter.
   #
-  # Template will use it to start the GSLB Virtual Server on.
+  # Template will use it to create TIP Group for the GSLB Virtual Server.
   #
-  description = "Name of an existing TIP Group to use."
+  description = "List of IP addresses for GSLB TIP Group"
+
+  default = []
+}
+
+variable "tip_type" {
+  description = "Type of the Traffic IP Group, e.g., 'singlehosted' or 'ec2vpcelastic'"
+  default     = "singlehosted"
 }
 
 ### Secondary vTM cluster ###
@@ -60,14 +67,19 @@ variable "vtm_password_2" {
   default     = ""
 }
 
-variable "existing_tip_group_name_2" {
+variable "traffic_ips_2" {
   # Mandatory parameter.
   #
-  # Template will use it to start the GSLB Virtual Server on.
+  # Template will use it to create TIP Group for the GSLB Virtual Server.
   #
-  description = "Name of an existing TIP Group on secondary vTM to use."
+  description = "List of IP addresses for GSLB TIP Group"
 
-  default = ""
+  default = []
+}
+
+variable "tip_type_2" {
+  description = "Type of the Traffic IP Group, e.g., 'singlehosted' or 'ec2vpcelastic'"
+  default     = "singlehosted"
 }
 
 ### End of Secondary vTM cluster variables ###
@@ -93,13 +105,7 @@ variable "global_host_name" {
   default     = "vpn"
 }
 
-variable "ns1_ip" {
-  # This would be an IP that belongs to the 'existing_tip_group_name'
-  description = "Public IP on your vTM to use for GSLB glue record 'ns1'."
-}
-
-variable "ns2_ip" {
-  # This would be another IP that belongs to the 'existing_tip_group_name', or
-  # an IP that belongs to 'existing_tip_group_name_2' if you use secondary vTM
-  description = "Public IP on your vTM to use for GSLB glue record 'ns2'."
+variable "zone_serial" {
+  description = "Serial for the GSLB DNS Zone's SOA record"
+  default     = "2018050101"
 }

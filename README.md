@@ -12,7 +12,7 @@ This template is meant to serve as a base that provides examples of most/all par
 
 This template can create vTM GSLB configuration on one or two vTM clusters (primary or primary + secondary). As is, template is supplied with support for two Locations, but can be reasonably easily expanded to support more.
 
-The template will create an appropriate vTM DNS zone file, GSLB Locations, Monitors, and Service, and associate them with a new `builtin_dns` vTM Virtual Server (VS) listening on port 53. The VS will be associated with the specified Traffic IP Group that must exist before this configuration is applied. This Traffic IP Group can have the same or different name on primary and secondary vTM clusters.
+The template will create an appropriate Traffic IP Group, vTM DNS zone file, GSLB Locations, Monitors, and Service, and associate them with a new `builtin_dns` vTM Virtual Server (VS) listening on port 53.
 
 ## Prerequisites
 
@@ -20,25 +20,21 @@ The template will create an appropriate vTM DNS zone file, GSLB Locations, Monit
 
 One or two vTM clusters must exist and be reachable on their IP + REST API port from the machine where `terraform` commands are executed.
 
+Following recommendations in the [RFC2182, "Selection and Operation of Secondary DNS Servers"](https://tools.ietf.org/html/rfc2182), it is highly recommended to implement two vTM clusters in geographically diverse locations to serve as the DNS servers for GSLB.
+
 ### vTM Version
 
 This template requires [Terraform Provider for vTM](https://github.com/pulse-vadc/terraform-provider-vtm/releases) for REST API v4.0. This Provider version will work with vTM versions 17.2 and up. It is OK to have different vTM versions between primary and secondary clusters.
 
-### Traffic IP Group(s)
+### Traffic IPs
 
-This template creates a Virtual Server for DNS that is attached to a TIP Group. Template requires a name of a valid TIP Group passed to it through the `existing_tip_group_name` variable. If there is a secondary vTM cluster, it can have the same or differently named TIP Group. In the later case, its name can be passed through the `existing_tip_group_name_2` variable.
+Template creates a Traffic IP Group using the IP addresses passed to it through the `traffic_ips` (for the primary vTM cluster) and `traffic_ips_2` (for the secondary one, if any).
 
-### 2 x Public IP addresses
-
-Template creates a DNS zone with 2 x `NS` entries in it which have to point to the IP addresses where vTM DNS server is listening. The IP addresses for these entries are passed through two variables called `ns1_ip` and `ns2_ip`.
-
-If using a single vTM cluster, please pass two IPs that belong to that vTM cluster's TIP Group (used above).
-
-If using a primary and a secondary vTM clusters, please pass one IP that belongs to the first vTM cluster's TIP Group, and another that belongs to the second one's. For example, if primary vTM's TIP Group had IPs `1.1.1.1` and `2.2.2.2` in it and secondary's TIP Group had `3.3.3.3` and `4.4.4.4`, pass in `ns1_ip = 1.1.1.1` and `ns2_ip = 3.3.3.3`.
+**IMPORTANT**: do not pass any IPs through `traffic_ips_2` if you don't have the secondary vTM cluster, as this will result in invalid DNS `NS` entries.
 
 ### Subdomain delegation
 
-By default, template will create a zone for a subdomain `gslb` under the domain you pass it through the `dns_domain` variable. Once template is deployed, it displays delegation records that can be placed in the main domain's zone. For example:
+By default, template will create a zone for a subdomain `gslb` under the domain you pass it through the `dns_domain` variable. Once template is deployed, it displays delegation records and a CNAME record that can be placed in the main domain's zone. For example:
 
 ```
 Apply complete! Resources: 9 added, 0 changed, 0 destroyed.
@@ -46,14 +42,19 @@ Apply complete! Resources: 9 added, 0 changed, 0 destroyed.
 Outputs:
 
 origin_zone_records = [
-    gslb IN NS ns1.gslb.example.com.,
-    gslb IN NS ns2.gslb.example.com.,
-    ns1.gslb.example.com. IN A 1.1.1.1,
-    ns2.gslb.example.com. IN A 2.2.2.2
+    gslb    IN NS ns1.gslb.example.com.,
+    gslb    IN NS ns2.gslb.example.com.,
+    gslb    IN NS ns3.gslb.example.com.,
+    gslb    IN NS ns4.gslb.example.com.,
+    ns1.gslb.example.com.  IN A 1.1.1.1,
+    ns2.gslb.example.com.  IN A 2.2.2.2,
+    ns3.gslb.example.com.  IN A 3.3.3.3,
+    ns4.gslb.example.com.  IN A 4.4.4.4,
+    vpn IN CNAME vpn.gslb.example.com.
 ]
 ```
 
-These delegation records must be applied manually to the respective zone.
+These records must be applied manually to the respective zone.
 
 ### GSLB Locations
 
@@ -83,13 +84,14 @@ Variables for this template are defined in three different files: `variables.tf`
 | `vtm_rest_port` | TCP port of the primary vTM's REST API. This is the TCP port Terraform will use to connect to this vTM's REST API endpoint. | `9070`
 | `vtm_username` | Username of the admin user on primary vTM cluster. This is the login Terraform will use to authenticate to the REST API endpoint. | `admin`
 | `vtm_password` | Password for the above. | N/A
-| `existing_tip_group_name` | Name of the Traffic IP Group on the Primary vTM that DNS VS will be attached to. | N/A
+| `traffic_ips` | A list of Traffic IPs for the TIP Group that will be used by GSLB Virtual Server | `[]`
+| `tip_type` | Type of the Traffic IP Group to create, e.g., `singlehosted`, `ec2vpcelastic` | `singlehosted`
 
 #### Secondary vTM cluster parameters
 
-The next group of variables is used only when there's a secondary vTM cluster. **Do not** specify any of these values if you don't have the secondary vTM cluster.
+The next group of variables is only used when there's a secondary vTM cluster. **Do not** specify any of these values if you don't have the secondary vTM cluster.
 
-All these values, except `vtm_rest_ip_2`, are optional; template will use the value specified for the corresponding primary vTM's variable.
+All these values, except `vtm_rest_ip_2` and `traffic_ips_2`, are optional; template will use the value specified for the corresponding primary vTM's variable, with exception of `tip_type_2`, which would be set to `singlehosted` if not specified.
 
 | Parameter | Description | Default
 | --- | --- | ---
@@ -97,7 +99,9 @@ All these values, except `vtm_rest_ip_2`, are optional; template will use the va
 | `vtm_rest_port_2` | TCP port of the secondary vTM's REST API. | `9070`
 | `vtm_username_2` | Username of the admin user on secondary vTM cluster. | `admin`
 | `vtm_password_2` | Password for the above. | N/A
-| `existing_tip_group_name_2` | Name of the Traffic IP Group on the Secondary vTM that DNS VS will be attached to. | N/A
+| `traffic_ips_2` | A list of Traffic IPs for the TIP Group that will be used by GSLB Virtual Server | `[]`
+| `tip_type_2` | Type of the Traffic IP Group to create, e.g., `singlehosted`, `ec2vpcelastic` | `singlehosted`
+
 
 #### GSLB related parameters
 
@@ -107,8 +111,7 @@ All these values, except `vtm_rest_ip_2`, are optional; template will use the va
 | `dns_domain` | Domain for the GSLB sub-domain. Used to customise the zone file, and configure the vTM's GLB Service. | N/A
 | `dns_subdomain` | Sub-domain that will be handled by the vTM GSLB DNS Server. Used for the same as above. | `gslb`
 | `global_host_name` | Host name for the GSLB endpoint. Again, as above. | `vpn`
-| `ns1_ip` | Public IP address belonging to primary vTM's TIP Group used for GSLB VS. Used to customise the GSLB zone file. | N/A
-| `ns2_ip` | Public IP address belonging to either primary vTM's TIP Group or to the secondary vTM's TIP Group, if the secondary vTM cluster is used. | N/A
+| `zone_serial` | Value used to populate the `Serial` in the GSLB zone's SOA record | `2018050101`
 
 ### `loc1-vars.tf`
 
@@ -163,7 +166,7 @@ Unzip the downloaded file and follow the [official instructions](https://www.ter
 
 3. Execute `terraform init` to download additional providers, followed by `terraform get` to initialise the Location template module.
 
-4. Run `terraform plan`, which should display the proposed changes - typically to create around ~20 resources per vTM cluster.
+4. Run `terraform plan`, which should display the proposed changes - typically to create around ~15 resources per vTM cluster.
 
 5. Run `terraform apply` to apply the configuration.
 
@@ -174,7 +177,7 @@ You may get a message similar to the below:
 ```
 Error: Error running plan: 1 error(s) occurred:
 
-* provider.vtm: Failed to connect to Virtual Traffic Manager at 'https://52.64.0.43:9070/api': <nil>
+* provider.vtm: Failed to connect to Virtual Traffic Manager at 'https://xx.xx.xx.xx:9070/api': <nil>
 ```
 
 This rather confusing message means that Terraform has likely failed to authenticate to the cluster. Please check the `vtm_username` and/or `vtm_password` (for the primary) or matching `_2` one for the secondary cluster.
@@ -183,9 +186,19 @@ Similar situation may occur if you haven't supplied value for `vtm_rest_ip_2`, b
 
 ## Cuff notes
 
-As it stands now, template doesn't increment Serial Number in the DNS zone, if you change any of the values and re-run `terraform apply` on top of already deployed configuration.
+As it stands now, template doesn't increment Serial Number in the DNS zone if you change any of the values and re-run `terraform apply` on top of already deployed configuration.
 
-I **think** it's not a problem because you don't normally use Secondary DNS servers with GSLB; but please do let me know if this is wrong.
+If you need to increment a zone serial, please increment value of the `zone_serial` in `terraform.tfvars` and re-run `terraform apply`.
+
+---
+
+If you specify value for the variable `env_id` that contains an underscore ("`_`"), template will replace it with a dash ("`-`") when naming your Locations. This is because vTM doesn't support underscores in Location names.
+
+All other vTM resources will be named using your original `env_id` value.
+
+---
+
+As mentioned above, pay attention to the IPs you specify in the `traffic_ips` and `traffic_ips_2` - make sure your vTM(s) can actually use them. Template will create an `NS` record for each IP specified, and if any of these IPs is not available, you will have an invalid NS record.
 
 ## Walk-through for adding another location
 

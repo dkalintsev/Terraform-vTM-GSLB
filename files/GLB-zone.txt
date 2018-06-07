@@ -5,16 +5,9 @@ $TTL    30
 $ORIGIN ${dns_subdomain}.${dns_domain}.
 
 @  1D  IN  SOA ns1.${dns_subdomain}.${dns_domain}. hostmaster.${dns_subdomain}.${dns_domain}. (
-                2017121501 ; serial
+                ${zone_serial} ; serial
                 3H ; refresh
                 15 ; retry
                 1w ; expire
                 3h ; nxdomain ttl
                 )
-
-        IN  NS  ns1.${dns_subdomain}.${dns_domain}.
-        IN  NS  ns2.${dns_subdomain}.${dns_domain}.
-
-; server host definitions
-ns1     IN  A   ${ns1_ip}
-ns2     IN  A   ${ns2_ip}

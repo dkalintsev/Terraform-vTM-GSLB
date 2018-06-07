@@ -1,6 +1,6 @@
 env_id = "test"
 
-vtm_rest_ip = "13.55.163.137"
+vtm_rest_ip = "13.236.167.180"
 
 #vtm_rest_ip_2 = "192.168.0.60"
 
@@ -8,13 +8,16 @@ vtm_password = "Password123"
 
 #vtm_password_2 = "abc123"
 
-existing_tip_group_name = "Web VIP"
+traffic_ips = ["52.65.100.53", "2.2.2.2"]
 
-existing_tip_group_name_2 = "Test"
+#tip_type = "singlehosted"
+tip_type = "ec2vpcelastic"
 
-ns1_ip = "1.1.1.1"
+#traffic_ips_2 = ["3.3.3.3", "4.4.4.4"]
 
-ns2_ip = "2.2.2.2"
+#tip_type_2 = "singlehosted"
+
+zone_serial = "2018050101"
 
 loc1_ips = ["10.10.10.10"]
 
