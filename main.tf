@@ -25,8 +25,6 @@ resource "null_resource" "ns" {
 
   triggers {
     ns_host = "ns${format("%d", count.index + 1)}"
-    ns_fqdn = "ns${format("%d", count.index + 1)}.${var.dns_subdomain}.${var.dns_domain}"
-    ns_ip   = "${local.all_tips[count.index]}"
   }
 }
 
@@ -37,16 +35,18 @@ locals {
   all_tips = "${flatten(list(var.traffic_ips, var.traffic_ips_2))}"
 
   # Create a list of "  IN NS nsN.blah.com."
-  in_ns_list = "${formatlist("    IN NS %s.",
-    null_resource.ns.*.triggers.ns_fqdn)}"
+  in_ns_list = "${formatlist(
+    "    IN NS %s.${var.dns_subdomain}.${var.dns_domain}.",
+    null_resource.ns.*.triggers.ns_host)}"
 
   # Pull the list into a string joined by new lines
   in_ns_string = "${join("\n", local.in_ns_list)}"
 
   # Create a list of "nsN  IN A x.x.x.x"
-  ns_in_a_list = "${formatlist("%s  IN A %s",
+  ns_in_a_list = "${formatlist(
+    "%s  IN A %s",
     null_resource.ns.*.triggers.ns_host,
-    null_resource.ns.*.triggers.ns_ip)}"
+    local.all_tips)}"
 
   # Pull the list into a string joined by new lines
   ns_in_a_string = "${join("\n", local.ns_in_a_list)}"
@@ -69,14 +69,16 @@ locals {
   # DNS Records for the origin zone. Generated as output for convenience.
   # These are to be added to the zone of the dns_domain manually
   #
-  glue_records = "${formatlist("%s.  IN A %s",
-    null_resource.ns.*.triggers.ns_fqdn,
-    null_resource.ns.*.triggers.ns_ip)}"
+  glue_records = "${formatlist(
+    "%s.${var.dns_subdomain}.${var.dns_domain}.  IN A %s",
+    null_resource.ns.*.triggers.ns_host,
+    local.all_tips)}"
 
-  ns_records = "${formatlist("${var.dns_subdomain}    IN NS %s.",
-    null_resource.ns.*.triggers.ns_fqdn)}"
+  ns_records = "${formatlist(
+    "${var.dns_subdomain}    IN NS %s.${var.dns_subdomain}.${var.dns_domain}.",
+    null_resource.ns.*.triggers.ns_host)}"
 
-  cname_record = "${format("${var.global_host_name} IN CNAME ${var.global_host_name}.${var.dns_subdomain}.${var.dns_domain}.")}"
+  cname_record = "${var.global_host_name} IN CNAME ${var.global_host_name}.${var.dns_subdomain}.${var.dns_domain}."
 }
 
 resource "vtm_dns_server_zone_file" "glb_zone_file" {
