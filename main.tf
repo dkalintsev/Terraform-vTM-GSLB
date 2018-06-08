@@ -1,3 +1,5 @@
+# Copyright (c) 2018 Pulse Secure LLC.
+#
 provider "vtm" {
   base_url        = "https://${var.vtm_rest_ip}:${var.vtm_rest_port}/api"
   username        = "${var.vtm_username}"

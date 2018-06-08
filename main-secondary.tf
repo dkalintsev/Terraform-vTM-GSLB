@@ -1,3 +1,5 @@
+# Copyright (c) 2018 Pulse Secure LLC.
+#
 locals {
   # Conditions to handle configuration for the secondary vTM cluster
   secondary_count = "${var.vtm_rest_ip_2 != "" ? 1 : 0}"

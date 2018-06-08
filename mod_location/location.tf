@@ -1,3 +1,5 @@
+# Copyright (c) 2018 Pulse Secure LLC.
+#
 provider "vtm" {
   # Explicit provider pass-through
 }
