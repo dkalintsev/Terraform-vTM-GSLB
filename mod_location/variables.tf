@@ -18,6 +18,10 @@ variable "loc_mon_port" {
   description = "IP port to use for monitoring of this location's IPs"
 }
 
+variable "loc_use_ssl" {
+  description = "Whether to use SSL in Location Monitor"
+}
+
 variable "loc_lat" {
   # Float value, e.g., "44.08"
   description = "Latitude of the Location"

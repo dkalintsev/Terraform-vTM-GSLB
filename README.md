@@ -64,11 +64,11 @@ Template is supplied with support for 2 locations. Each location requires the fo
 - Location's Latitude
 - Location's Longitude
 
-> Note: this template expects that the servers at Locations are PCS nodes listening on TCP/443, with health check URL being `/dana-na/auth/url_default/welcome.cgi`. This can be changed in `main.tf` modules `loc1` and `loc2`, parameters `loc_mon_port` and `monitor_http_path`.
+> Note: this template expects that the servers at Locations are PCS nodes listening on TCP/443 using SSL, with health check URL being `/dana-na/auth/url_default/welcome.cgi`. This can be changed in the `main.tf` where it calls modules `loc1` and `loc2` with parameters `monitor_http_path`, `loc_mon_port`, and `loc_use_ssl`.
 
 ## Input Parameters
 
-Variables for this template are defined in three different files: `variables.tf`, `loc1-vars.tf`, and `loc2-vars.tf`. This is done to ease the process of adding new locations.
+Variables for this template are defined in three different files: `variables.tf`, `loc1-vars.tf`, and `loc2-vars.tf`. This was done to ease the process of adding new locations.
 
 ### `variables.tf`
 
@@ -120,7 +120,6 @@ These are the parameters for the Location 1.
 | Parameter | Description | Default
 | --- | --- | ---
 | `loc1_ips` | A list of public IP addresses for the Location 1, for example, `["10.10.10.10", "20.20.20.20"]`. This is used to create Location Monitors. One monitor is created for each IP in this list. | `[]` (empty list)
-| `loc1_mon_port` | TCP port that Location IPs should be monitored on; used in Monitor's configuration. | `443`
 | `loc1_lat` | Latitude of the Location 1, e.g., `44.08`; used for the Location's, well, location. | N/A
 | `loc1_lon` | Longitude of the Location 1, e.g., `-120.74` | N/A
 
@@ -131,7 +130,6 @@ These are the parameters for the Location 2; they are identical to their counter
 | Parameter | Description | Default
 | --- | --- | ---
 | `loc2_ips` | A list of public IP addresses for the Location 2, for example, `["10.10.10.10", "20.20.20.20"]` | `[]` (empty list)
-| `loc2_mon_port` | TCP port that Location IPs should be monitored on | `443`
 | `loc2_lat` | Latitude of the Location 2, e.g., `19.08` | N/A
 | `loc2_lon` | Longitude of the Location 2, e.g., `72.89` | N/A
 
@@ -188,7 +186,7 @@ Similar situation may occur if you haven't supplied value for `vtm_rest_ip_2`, b
 
 As it stands now, template doesn't increment Serial Number in the DNS zone if you change any of the values and re-run `terraform apply` on top of already deployed configuration.
 
-If you need to increment a zone serial, please increment value of the `zone_serial` in `terraform.tfvars` and re-run `terraform apply`.
+If you need to increment the zone serial, please increment value of the `zone_serial` in `terraform.tfvars` and re-run `terraform apply`.
 
 ---
 
@@ -222,6 +220,7 @@ module "loc1" {
   sec_count         = "${local.secondary_count}"
   loc_ips           = "${var.loc1_ips}"
   loc_mon_port      = "443"
+  loc_use_ssl       = "true"
   loc_lat           = "${var.loc1_lat}"
   loc_lon           = "${var.loc1_lon}"
   loc_num           = "1"

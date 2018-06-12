@@ -28,7 +28,7 @@ resource "vtm_monitor" "monitor_loc" {
   machine   = "${element(var.loc_ips, count.index)}:${var.loc_mon_port}"
   scope     = "poolwide"
   type      = "http"
-  use_ssl   = "true"
+  use_ssl   = "${var.loc_use_ssl}"
   http_path = "${var.monitor_http_path}"
 }
 
@@ -53,7 +53,7 @@ resource "vtm_monitor" "monitor_loc_2" {
   machine   = "${element(var.loc_ips, count.index)}:${var.loc_mon_port}"
   scope     = "poolwide"
   type      = "http"
-  use_ssl   = "true"
+  use_ssl   = "${var.loc_use_ssl}"
   http_path = "${var.monitor_http_path}"
 }
 
