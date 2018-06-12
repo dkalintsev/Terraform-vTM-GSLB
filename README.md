@@ -89,7 +89,7 @@ Variables for this template are defined in three different files: `variables.tf`
 
 #### Secondary vTM cluster parameters
 
-The next group of variables is only used when there's a secondary vTM cluster. **Do not** specify any of these values if you don't have the secondary vTM cluster.
+The next group of variables is only used when there's a secondary vTM cluster.
 
 All these values, except `vtm_rest_ip_2` and `traffic_ips_2`, are optional; template will use the value specified for the corresponding primary vTM's variable, with exception of `tip_type_2`, which would be set to `singlehosted` if not specified.
 
@@ -107,11 +107,13 @@ All these values, except `vtm_rest_ip_2` and `traffic_ips_2`, are optional; temp
 
 | Parameter | Description | Default
 | --- | --- | ---
-| `monitor_http_path` | HTTP Path that will be used to monitor health of each location IP. | `/dana-na/auth/url_default/welcome.cgi`
 | `dns_domain` | Domain for the GSLB sub-domain. Used to customise the zone file, and configure the vTM's GLB Service. | N/A
 | `dns_subdomain` | Sub-domain that will be handled by the vTM GSLB DNS Server. Used for the same as above. | `gslb`
 | `global_host_name` | Host name for the GSLB endpoint. Again, as above. | `vpn`
 | `zone_serial` | Value used to populate the `Serial` in the GSLB zone's SOA record | `2018050101`
+| `monitor_http_path` | HTTP Path that will be used to monitor health of each location IP. | `/dana-na/auth/url_default/welcome.cgi`
+| `loc_mon_port` | TCP/UDP Port to use for monitoring location endpoints. | `443`
+| `monitor_http_path` | Flag to whether to use SSL for location endpoint monitoring. | `true`
 
 ### `loc1-vars.tf`
 

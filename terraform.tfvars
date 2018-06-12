@@ -36,3 +36,11 @@ dns_domain = "example.com"
 dns_subdomain = "gslb"
 
 global_host_name = "vpn"
+
+# Optional parameters for Location monitors
+# Use these to override the defaults (set for PCS), if necessary
+#
+#loc_mon_port = "443"
+#loc_use_ssl = "true"
+#monitor_http_path = "/dana-na/auth/url_default/welcome.cgi"
+

@@ -14,16 +14,19 @@ locals {
   vtm_rest_ip_2 = "${var.vtm_rest_ip_2 != "" ?
     var.vtm_rest_ip_2 : var.vtm_rest_ip}"
 
-  # Was alternative REST port specified for secondary?
-  vtm_rest_port_2 = "${var.vtm_rest_port_2 != "" ?
+  # Was an alternative REST port specified for secondary?
+  # Only override if vtm_rest_ip_2 is also specified.
+  vtm_rest_port_2 = "${var.vtm_rest_port_2 != "" && var.vtm_rest_ip_2 != "" ?
     var.vtm_rest_port_2 : var.vtm_rest_port}"
 
-  # Was alternative username specified for secondary?
-  vtm_username_2 = "${var.vtm_username_2 != "" ?
+  # Was an alternative username specified for secondary?
+  # Only override if vtm_rest_ip_2 is also specified.
+  vtm_username_2 = "${var.vtm_username_2 != "" && var.vtm_rest_ip_2 != "" ?
     var.vtm_username_2 : var.vtm_username}"
 
-  # Was alternative password specified for secondary?
-  vtm_password_2 = "${var.vtm_password_2 != "" ?
+  # Was an alternative password specified for secondary?
+  # Only override if vtm_rest_ip_2 is also specified.
+  vtm_password_2 = "${var.vtm_password_2 != "" && var.vtm_rest_ip_2 != "" ?
     var.vtm_password_2 : var.vtm_password}"
 }
 

@@ -45,7 +45,8 @@ variable "tip_type" {
 # The main variable is the "vtm_rest_ip_2" - if specified, this will trigger
 # creation of the config objects for the second vTM cluster.
 #
-# If any of the below is set to "", template will reuse value from the primary.
+# If any of the below 'vtm_*' variables is set to "", template will reuse
+# correponding value from the primary.
 #
 variable "vtm_rest_ip_2" {
   description = "IP or FQDN of the vTM REST API endpoint, e.g. '192.168.0.1'"
@@ -84,12 +85,9 @@ variable "tip_type_2" {
 
 ### End of Secondary vTM cluster variables ###
 
-variable "monitor_http_path" {
-  description = "HTTP path for the GSLB Location Monitor"
-
-  # Default for PCS
-  default = "/dana-na/auth/url_default/welcome.cgi"
-}
+#############
+# DNS details
+#############
 
 variable "dns_domain" {
   description = "DNS domain for the GLB Zone file"
@@ -108,4 +106,25 @@ variable "global_host_name" {
 variable "zone_serial" {
   description = "Serial for the GSLB DNS Zone's SOA record"
   default     = "2018050101"
+}
+
+#############################
+# Location monitor parameters
+#############################
+
+variable "monitor_http_path" {
+  description = "HTTP path for the GSLB Location Monitor"
+
+  # Default for PCS
+  default = "/dana-na/auth/url_default/welcome.cgi"
+}
+
+variable "loc_mon_port" {
+  description = "TCP/UDP Port to use for monitoring location endpoints"
+  default     = "443"
+}
+
+variable "loc_use_ssl" {
+  description = "Flag to whether to use SSL for location endpoint monitoring"
+  default     = "true"
 }
